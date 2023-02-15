@@ -1,0 +1,9 @@
+{
+	"name": "IntegrationHubsDF",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "7d2c3ba6-1928-46be-a94f-28f90cb57657",
+		"tenantId": "a2d78d4c-301e-46f0-9bf6-4c2274104a56"
+	}
+}
