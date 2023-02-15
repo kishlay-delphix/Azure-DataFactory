@@ -31,7 +31,7 @@
 			}
 		}
 	},
-	"documentation": "https://documentation.delphix.com/ecohub/docs/overview-1",
+	"documentation": "https://documentation.delphix.com/ecohub/docs/data-masking-with-delphix",
 	"author": "kishlay.singh@azureopsdelphix.onmicrosoft.com",
 	"annotations": [
 		"Delphix",
@@ -39,8 +39,6 @@
 		"Masking",
 		"Compliance"
 	],
-	"services": [
-		"Azure Blob Storage"
-	],
+	"services": [],
 	"categories": []
 }
