@@ -1,0 +1,153 @@
+{
+	"name": "Extract Source Data",
+	"properties": {
+		"activities": [
+			{
+				"name": "List All Tables",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "@pipeline().parameters.QueryToFetchTables",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ConnectToSourceData",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "*",
+							"TableSchema": "*"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Iterator to loop over all tables",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "List All Tables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('List All Tables').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copies data from table to csv file",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "SELECT * FROM [@{item().TABLE_SCHEMA}].[@{item().TABLE_NAME}];",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureFileStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "GetSourceData",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": "@item().TABLE_NAME",
+										"TableSchema": "@item().TABLE_SCHEMA"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "FileShareDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"DirectoryName": {
+											"value": "@concat(pipeline().parameters.rootFolder,'/Source')",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@{item().TABLE_CATALOG}.@{item().TABLE_SCHEMA}.@{item().TABLE_NAME}.csv",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"QueryToFetchTables": {
+				"type": "string"
+			},
+			"rootFolder": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"sourceSetup": {
+				"type": "Boolean"
+			},
+			"maskingSetupSuccess": {
+				"type": "Boolean"
+			},
+			"Execution": {
+				"type": "Boolean"
+			},
+			"uploadStatus": {
+				"type": "String"
+			},
+			"targetSetup": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Delphix Continous Compliance"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-12-12T05:22:44Z"
+	}
+}
